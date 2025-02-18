@@ -79,6 +79,11 @@ class App(ctk.CTk):
                 break
         p.terminate()
         return vb_index
+    
+    def downmix_to_mono(stereo_data):
+        samples = np.frombuffer(stereo_data, dtype=np.int16).reshape(-1, 2)
+        mono_samples = samples.mean(axis=1).astype(np.int16)  # Average left & right
+        return mono_samples.tobytes()
 
     def start_audio_stream(self):
         selected_mic = self.mic_dropdown.get()
@@ -125,16 +130,17 @@ class App(ctk.CTk):
         
         while self.streaming is True: ## Audio loop
             data = self.stream.read(CHUNK, exception_on_overflow=False)
+            data = self.downmix_to_mono(data)
+            
             samples = np.frombuffer(data, dtype=np.int16).astype(np.float32)
             
             samples /= 32768.0 
     
             filtered_samples = highpass_filter(samples)
             filtered_samples = lowpass_filter(filtered_samples)
-
+            
             phase = 0
             
-    
             if np.max(np.abs(filtered_samples)) > THRESHOLD:
                 t = np.arange(CHUNK) / RATE
                 phase_increment = (2 * np.pi * TONE_FREQ) / RATE
