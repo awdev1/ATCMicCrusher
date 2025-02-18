@@ -1,6 +1,7 @@
 import pyaudio
 import numpy as np
 import scipy.signal as signal
+
 RATE = 44100
 CHUNK = 1024
 TONE_FREQ = 400
@@ -14,7 +15,9 @@ stream = p.open(format=pyaudio.paInt16,
                 rate=RATE,
                 input=True,
                 output=True,
-                frames_per_buffer=CHUNK)
+                frames_per_buffer=CHUNK,
+                output_device_index=12,
+                input_device_index=5)
 
 def highpass_filter(audio, cutoff=300, fs=RATE, order=5):
     nyq = 0.5 * fs
